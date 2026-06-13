@@ -1,0 +1,115 @@
+<dashboard version="2" theme="dark">
+  <label>NeuralWatch — EU AI Act Compliance</label>
+  <description>EU AI Act Compliance monitoring across Articles 9, 13, 14, 17, and 72.</description>
+  <definition><![CDATA[
+{
+  "visualizations": {
+    "viz_overall_score": {
+      "type": "splunk.singlevalue",
+      "options": {
+        "majorColor": "#D97706"
+      },
+      "title": "Overall Compliance Score",
+      "dataSources": {
+        "primary": "ds_overall_score"
+      }
+    },
+    "viz_status_summary": {
+      "type": "splunk.table",
+      "options": {
+        "count": 5
+      },
+      "title": "Status Summary per Service",
+      "dataSources": {
+        "primary": "ds_status_summary"
+      }
+    },
+    "viz_article_breakdown": {
+      "type": "splunk.table",
+      "options": {
+        "count": 10
+      },
+      "title": "Per-Article Score Breakdown",
+      "dataSources": {
+        "primary": "ds_article_breakdown"
+      }
+    },
+    "viz_human_oversight_gap": {
+      "type": "splunk.column",
+      "options": {
+        "color": "#D97706"
+      },
+      "title": "Article 14 - Human Oversight Gap Detail",
+      "dataSources": {
+        "primary": "ds_human_oversight_gap"
+      }
+    },
+    "viz_compliance_forecast": {
+      "type": "splunk.line",
+      "options": {},
+      "title": "Compliance Trend Forecast (30-Day CDTSM Projection)",
+      "dataSources": {
+        "primary": "ds_compliance_forecast"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_overall_score": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Compliance Score"
+      }
+    },
+    "ds_status_summary": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Compliance Score"
+      }
+    },
+    "ds_article_breakdown": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Compliance Score"
+      }
+    },
+    "ds_human_oversight_gap": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Compliance Score"
+      }
+    },
+    "ds_compliance_forecast": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Compliance Score"
+      }
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "structure": [
+      {
+        "item": "viz_overall_score",
+        "position": { "x": 0, "y": 0, "w": 6, "h": 2 }
+      },
+      {
+        "item": "viz_status_summary",
+        "position": { "x": 6, "y": 0, "w": 6, "h": 2 }
+      },
+      {
+        "item": "viz_article_breakdown",
+        "position": { "x": 0, "y": 2, "w": 12, "h": 4 }
+      },
+      {
+        "item": "viz_human_oversight_gap",
+        "position": { "x": 0, "y": 6, "w": 6, "h": 4 }
+      },
+      {
+        "item": "viz_compliance_forecast",
+        "position": { "x": 6, "y": 6, "w": 6, "h": 4 }
+      }
+    ]
+  }
+}
+  ]]></definition>
+</dashboard>

@@ -1,0 +1,195 @@
+<dashboard version="2" theme="dark">
+  <label>NeuralWatch — Prompt Injection Sentinel</label>
+  <description>Real-time adversarial prompt detection and classification via Splunk Hosted Models.</description>
+  <definition><![CDATA[
+{
+  "visualizations": {
+    "viz_critical_count": {
+      "type": "splunk.singlevalue",
+      "options": {
+        "majorColor": "#DC2626"
+      },
+      "title": "CRITICAL Alerts (1h)",
+      "dataSources": {
+        "primary": "ds_critical_count"
+      }
+    },
+    "viz_high_count": {
+      "type": "splunk.singlevalue",
+      "options": {
+        "majorColor": "#D97706"
+      },
+      "title": "HIGH Severity (1h)",
+      "dataSources": {
+        "primary": "ds_high_count"
+      }
+    },
+    "viz_total_scanned": {
+      "type": "splunk.singlevalue",
+      "options": {
+        "majorColor": "#6B7280"
+      },
+      "title": "Total Scanned (1h)",
+      "dataSources": {
+        "primary": "ds_total_scanned"
+      }
+    },
+    "viz_avg_risk": {
+      "type": "splunk.singlevalue",
+      "options": {
+        "majorColor": "#2563EB"
+      },
+      "title": "Avg Risk Score",
+      "dataSources": {
+        "primary": "ds_avg_risk"
+      }
+    },
+    "viz_alert_feed": {
+      "type": "splunk.table",
+      "options": {
+        "count": 10
+      },
+      "title": "Live Alert Feed (CRITICAL + HIGH only)",
+      "dataSources": {
+        "primary": "ds_alert_feed"
+      }
+    },
+    "viz_attempts_by_service": {
+      "type": "splunk.bar",
+      "options": {
+        "color": "#D97706"
+      },
+      "title": "Injection Attempts by Service",
+      "dataSources": {
+        "primary": "ds_attempts_by_service"
+      }
+    },
+    "viz_session_persistence": {
+      "type": "splunk.table",
+      "options": {
+        "count": 5
+      },
+      "title": "Attacker Session Persistence (3+ hits)",
+      "dataSources": {
+        "primary": "ds_session_persistence"
+      }
+    },
+    "viz_risk_distribution": {
+      "type": "splunk.pie",
+      "options": {
+        "colors": ["#DC2626", "#D97706", "#2563EB", "#6B7280"]
+      },
+      "title": "Risk Level Distribution",
+      "dataSources": {
+        "primary": "ds_risk_distribution"
+      }
+    },
+    "viz_injection_forecast": {
+      "type": "splunk.line",
+      "options": {},
+      "title": "Injection Volume Forecast (7-Day CDTSM Projection)",
+      "dataSources": {
+        "primary": "ds_injection_forecast"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_critical_count": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - CRITICAL Alert Search"
+      }
+    },
+    "ds_high_count": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Classify Injections"
+      }
+    },
+    "ds_total_scanned": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Classify Injections"
+      }
+    },
+    "ds_avg_risk": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Classify Injections"
+      }
+    },
+    "ds_alert_feed": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Classify Injections"
+      }
+    },
+    "ds_attempts_by_service": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Classify Injections"
+      }
+    },
+    "ds_session_persistence": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Attacker Persistence"
+      }
+    },
+    "ds_risk_distribution": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Classify Injections"
+      }
+    },
+    "ds_injection_forecast": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Injection Volume Forecast"
+      }
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "structure": [
+      {
+        "item": "viz_critical_count",
+        "position": { "x": 0, "y": 0, "w": 3, "h": 2 }
+      },
+      {
+        "item": "viz_high_count",
+        "position": { "x": 3, "y": 0, "w": 3, "h": 2 }
+      },
+      {
+        "item": "viz_total_scanned",
+        "position": { "x": 6, "y": 0, "w": 3, "h": 2 }
+      },
+      {
+        "item": "viz_avg_risk",
+        "position": { "x": 9, "y": 0, "w": 3, "h": 2 }
+      },
+      {
+        "item": "viz_alert_feed",
+        "position": { "x": 0, "y": 2, "w": 12, "h": 4 }
+      },
+      {
+        "item": "viz_attempts_by_service",
+        "position": { "x": 0, "y": 6, "w": 6, "h": 4 }
+      },
+      {
+        "item": "viz_session_persistence",
+        "position": { "x": 6, "y": 6, "w": 6, "h": 4 }
+      },
+      {
+        "item": "viz_risk_distribution",
+        "position": { "x": 0, "y": 10, "w": 6, "h": 4 }
+      },
+      {
+        "item": "viz_injection_forecast",
+        "position": { "x": 6, "y": 10, "w": 6, "h": 4 }
+      }
+    ]
+  }
+}
+  ]]></definition>
+</dashboard>

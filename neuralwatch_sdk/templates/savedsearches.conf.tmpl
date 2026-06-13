@@ -1,0 +1,79 @@
+# ── CORE MODULE SEARCHES ──
+
+[NeuralWatch - Call Volume by Model]
+search = index=neuralwatch_ai_calls sourcetype="nw:ai_call" | timechart span=5m count by model | fillnull value=0
+dispatch.earliest_time = -24h
+dispatch.latest_time = now
+
+[NeuralWatch - Cost by Team]
+search = index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats sum(cost_usd) as total_cost by team | sort -total_cost
+dispatch.earliest_time = -24h
+dispatch.latest_time = now
+
+[NeuralWatch - Latency Percentiles]
+search = index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats p50(latency_ms) as p50, p95(latency_ms) as p95, p99(latency_ms) as p99, count by model | sort -p99
+dispatch.earliest_time = -24h
+dispatch.latest_time = now
+
+[NeuralWatch - Cost Forecast]
+search = index=neuralwatch_ai_calls sourcetype="nw:ai_call" | timechart span=1d sum(cost_usd) as daily_cost | predict daily_cost algorithm=LLP5 future_timespan=7 as forecast upper95 lower95
+dispatch.earliest_time = -30d
+dispatch.latest_time = now
+
+[NeuralWatch - Model Version Changes]
+search = index=neuralwatch_ai_calls sourcetype="nw:ai_call" | dedup model_version | streamstats current=f last(model_version) as prev_version by model | where model_version!=prev_version AND isnotnull(prev_version) | eval change="Changed: " + prev_version + " → " + model_version | table _time, model, change
+dispatch.earliest_time = -7d
+dispatch.latest_time = now
+
+[NeuralWatch - Error Rate by Service]
+search = index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats count as total, count(eval(status="error")) as errors by service | eval error_rate=round(errors/total*100,2) | sort -error_rate
+dispatch.earliest_time = -24h
+dispatch.latest_time = now
+
+# ── MODULE A: INJECTION SEARCHES ──
+
+[NeuralWatch - Classify Injections]
+search = index=neuralwatch_injections sourcetype="nw:prompt" injection_score=* | eval risk_level=case(injection_score>0.85,"CRITICAL",injection_score>0.65,"HIGH",injection_score>0.40,"MEDIUM",true(),"LOW") | where risk_level IN ("CRITICAL","HIGH") | table _time, call_id, service, team, injection_score, risk_level
+dispatch.earliest_time = -1h
+dispatch.latest_time = now
+enableSched = 1
+cron_schedule = */5 * * * *
+
+[NeuralWatch - CRITICAL Alert Search]
+search = index=neuralwatch_injections sourcetype="nw:prompt" injection_score>0.85 | eval risk_level="CRITICAL" | eval alert_msg="Prompt injection CRITICAL: " + service + " score=" + round(injection_score,3) | table _time, call_id, service, team, injection_score, alert_msg
+dispatch.earliest_time = -5m
+dispatch.latest_time = now
+enableSched = 1
+cron_schedule = */5 * * * *
+alert.track = 1
+alert.condition = search count > 0
+alert.suppress = 1
+alert.suppress.period = 1h
+alert.suppress.fields = call_id
+action.email.sendresults = 0
+
+[NeuralWatch - Attacker Persistence]
+search = index=neuralwatch_injections sourcetype="nw:prompt" risk_level IN ("CRITICAL","HIGH") | stats count as attempts, min(_time) as first_seen, max(_time) as last_seen by session_id, service | where attempts >= 3 | eval span_minutes=round((last_seen-first_seen)/60,1) | sort -attempts
+dispatch.earliest_time = -24h
+dispatch.latest_time = now
+
+[NeuralWatch - Injection Volume Forecast]
+search = index=neuralwatch_injections sourcetype="nw:prompt" | timechart span=1d count as daily_injections | predict daily_injections algorithm=LLP5 future_timespan=7
+dispatch.earliest_time = -30d
+dispatch.latest_time = now
+
+# ── MODULE D: COMPLIANCE SEARCHES ──
+
+[NeuralWatch - Compliance Score]
+search = | inputlookup neuralwatch_compliance_baseline.csv | join type=left service [search index=neuralwatch_ai_calls earliest=-24h | stats count as total_calls, count(eval(status="error")) as errors by service] | join type=left service [search index=neuralwatch_injections earliest=-24h | stats count(eval(injection_score>0.65)) as injection_events by service] | eval art9_score=if(injection_events<5 OR isnull(injection_events), 100, max(0,100-injection_events*5)) | eval art13_score=if(disclosure_enabled=1,100,0) | eval art14_score=if(human_review_required=0,100, round(human_review_threshold*100,0)) | eval art17_score=if(isnull(errors) OR total_calls=0,100, round((1-errors/total_calls)*100,0)) | eval art72_score=90 | eval overall_score=round((art9_score+art13_score+art14_score+art17_score+art72_score)/5,1) | eval status=case(overall_score>=90,"COMPLIANT",overall_score>=70,"AT RISK",true(),"NON-COMPLIANT") | table service, overall_score, status, art9_score, art13_score, art14_score, art17_score, art72_score
+dispatch.earliest_time = -24h
+dispatch.latest_time = now
+
+# ── SUMMARY INDEXING SEARCH ──
+
+[NeuralWatch - Hourly Cost Summary]
+search = index=neuralwatch_ai_calls sourcetype="nw:ai_call" | bucket span=1h _time | stats count as total_calls, sum(cost_usd) as total_cost_usd, sum(input_tokens) as total_input_tokens, sum(output_tokens) as total_output_tokens by _time, team, model | eval period="hourly" | collect index=neuralwatch_costs sourcetype=nw:cost_summary
+dispatch.earliest_time = -1h@h
+dispatch.latest_time = @h
+enableSched = 1
+cron_schedule = 5 * * * *
