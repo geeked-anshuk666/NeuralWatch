@@ -1,0 +1,163 @@
+<dashboard theme="dark" version="1.1">
+  <label>NeuralWatch — AI Fleet Observatory</label>
+  <description>Module C: Real-time cost, latency, tokens and error tracking across your LLM fleet.</description>
+
+  <row>
+    <panel>
+      <single>
+        <title>Total AI Calls (24h)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats count as total_calls</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="colorBy">value</option>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total Cost Today (USD)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats sum(cost_usd) as total_cost | eval total_cost="$" . tostring(round(total_cost,2))</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Active Models</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats dc(model) as active_models</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total Token Usage</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats sum(input_tokens) as total_input, sum(output_tokens) as total_output | eval total=total_input+total_output | fields total</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <chart>
+        <title>AI Call Volume by Model (last 24h)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | timechart span=1h count by model</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="charting.chart">line</option>
+        <option name="charting.legend.placement">bottom</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <chart>
+        <title>Cost Burn by Team</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats sum(cost_usd) as total_cost by team | sort -total_cost</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+      </chart>
+    </panel>
+    <panel>
+      <table>
+        <title>Latency Percentiles by Model (ms)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats p50(latency_ms) as p50, p95(latency_ms) as p95, p99(latency_ms) as p99, count as calls by model | sort -p99</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <chart>
+        <title>Error Rate by Service (%)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats count as total, sum(eval(if(status="error",1,0))) as errors by service | eval error_rate=round(errors/total*100,2) | sort -error_rate | fields service, error_rate</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="charting.chart">column</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Token Usage by Model</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats sum(input_tokens) as input_tokens, sum(output_tokens) as output_tokens by model | sort -input_tokens</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.stackMode">stacked</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <chart>
+        <title>AI Cost Forecast (7-Day Projection)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | timechart span=1d sum(cost_usd) as daily_cost | predict daily_cost algorithm=LLP5 future_timespan=7 as forecast</query>
+          <earliest>-30d</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>

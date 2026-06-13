@@ -1,0 +1,5 @@
+<nav>
+  <view name="neuralwatch_main" default="true" />
+  <view name="neuralwatch_injection" />
+  <view name="neuralwatch_compliance" />
+</nav>

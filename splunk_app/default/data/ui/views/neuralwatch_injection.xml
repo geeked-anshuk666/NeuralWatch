@@ -1,0 +1,143 @@
+<dashboard theme="dark" version="1.1">
+  <label>NeuralWatch — Prompt Injection Sentinel</label>
+  <description>Module A: Real-time adversarial prompt detection and risk classification.</description>
+
+  <row>
+    <panel>
+      <single>
+        <title>CRITICAL Alerts (24h)</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" injection_score &gt; 0.85 | stats count as critical_alerts</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="drilldown">none</option>
+        <option name="underLabel">injection_score > 0.85</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>HIGH Severity (24h)</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" injection_score &gt; 0.65 injection_score &lt;= 0.85 | stats count as high_alerts</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Total Scanned (24h)</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" | stats count as total_scanned</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Avg Injection Risk Score</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" | stats avg(injection_score) as avg_score | eval avg_score=round(avg_score,3)</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="drilldown">none</option>
+      </single>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <table>
+        <title>Live Alert Feed — CRITICAL + HIGH Events</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" injection_score &gt; 0.65 | eval risk_level=case(injection_score &gt; 0.85,"CRITICAL",injection_score &gt; 0.65,"HIGH",1=1,"MEDIUM") | table _time, service, team, injection_score, risk_level, call_id | sort -injection_score | head 20</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+      </table>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <chart>
+        <title>Injection Attempts by Service</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" injection_score &gt; 0.65 | stats count as attacks by service | sort -attacks</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="charting.chart">bar</option>
+        <option name="charting.chart.showDataLabels">all</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Risk Level Distribution</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" | eval risk_level=case(injection_score &gt; 0.85,"CRITICAL",injection_score &gt; 0.65,"HIGH",injection_score &gt; 0.40,"MEDIUM",1=1,"LOW") | stats count by risk_level</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="charting.chart">pie</option>
+      </chart>
+    </panel>
+  </row>
+
+  <row>
+    <panel>
+      <table>
+        <title>Attacker Session Persistence (3+ Hits)</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" injection_score &gt; 0.65 | stats count as attempts, min(_time) as first_seen, max(_time) as last_seen by session_id, service | where attempts &gt;= 3 | eval span_minutes=round((last_seen-first_seen)/60,1) | sort -attempts | table session_id, service, attempts, span_minutes</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+      </table>
+    </panel>
+    <panel>
+      <chart>
+        <title>Injection Score Over Time</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" | timechart span=1h avg(injection_score) as avg_risk_score, count as total_scanned</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+        
+        <refresh>2s</refresh>
+
+        </search>
+        <option name="charting.chart">line</option>
+      </chart>
+    </panel>
+  </row>
+
+</dashboard>
