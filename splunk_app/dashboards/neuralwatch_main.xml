@@ -1,0 +1,201 @@
+<dashboard version="2" theme="dark">
+  <label>NeuralWatch — AI Fleet Observatory</label>
+  <description>Real-time dashboards for costs, latency, errors, and CDTSM forecasting across your LLM fleet.</description>
+  <definition><![CDATA[
+{
+  "visualizations": {
+    "viz_total_calls": {
+      "type": "splunk.singlevalue",
+      "options": {
+        "sparkline": true,
+        "majorColor": "#7C3AED"
+      },
+      "title": "Total AI Calls (24h)",
+      "dataSources": {
+        "primary": "ds_total_calls"
+      }
+    },
+    "viz_total_cost": {
+      "type": "splunk.singlevalue",
+      "options": {
+        "sparkline": true,
+        "majorColor": "#D97706",
+        "numberFormat": {
+          "style": "currency",
+          "currency": "USD"
+        }
+      },
+      "title": "Total Cost Today",
+      "dataSources": {
+        "primary": "ds_total_cost"
+      }
+    },
+    "viz_active_models": {
+      "type": "splunk.singlevalue",
+      "options": {
+        "majorColor": "#7C3AED"
+      },
+      "title": "Active Models",
+      "dataSources": {
+        "primary": "ds_active_models"
+      }
+    },
+    "viz_call_volume": {
+      "type": "splunk.line",
+      "options": {
+        "colors": ["#7C3AED", "#2563EB", "#059669", "#D97706", "#DC2626"]
+      },
+      "title": "AI Call Volume by Model (last 24h)",
+      "dataSources": {
+        "primary": "ds_call_volume"
+      }
+    },
+    "viz_cost_burn": {
+      "type": "splunk.bar",
+      "options": {
+        "color": "#7C3AED"
+      },
+      "title": "Cost Burn by Team",
+      "dataSources": {
+        "primary": "ds_cost_burn"
+      }
+    },
+    "viz_latency": {
+      "type": "splunk.table",
+      "options": {
+        "count": 10
+      },
+      "title": "Latency Percentiles by Model (ms)",
+      "dataSources": {
+        "primary": "ds_latency"
+      }
+    },
+    "viz_error_rate": {
+      "type": "splunk.column",
+      "options": {
+        "color": "#DC2626"
+      },
+      "title": "Error Rate by Service",
+      "dataSources": {
+        "primary": "ds_error_rate"
+      }
+    },
+    "viz_version_changes": {
+      "type": "splunk.table",
+      "options": {
+        "count": 5
+      },
+      "title": "Model Version Changes Detected",
+      "dataSources": {
+        "primary": "ds_version_changes"
+      }
+    },
+    "viz_cost_forecast": {
+      "type": "splunk.line",
+      "options": {},
+      "title": "AI Cost Forecast (7-Day CDTSM Projection)",
+      "dataSources": {
+        "primary": "ds_cost_forecast"
+      }
+    }
+  },
+  "dataSources": {
+    "ds_total_calls": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Call Volume by Model"
+      }
+    },
+    "ds_total_cost": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Cost by Team"
+      }
+    },
+    "ds_active_models": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Latency Percentiles"
+      }
+    },
+    "ds_call_volume": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Call Volume by Model"
+      }
+    },
+    "ds_cost_burn": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Cost by Team"
+      }
+    },
+    "ds_latency": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Latency Percentiles"
+      }
+    },
+    "ds_error_rate": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Error Rate by Service"
+      }
+    },
+    "ds_version_changes": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Model Version Changes"
+      }
+    },
+    "ds_cost_forecast": {
+      "type": "ds.savedSearch",
+      "options": {
+        "name": "NeuralWatch - Cost Forecast"
+      }
+    }
+  },
+  "layout": {
+    "type": "grid",
+    "structure": [
+      {
+        "item": "viz_total_calls",
+        "position": { "x": 0, "y": 0, "w": 4, "h": 2 }
+      },
+      {
+        "item": "viz_total_cost",
+        "position": { "x": 4, "y": 0, "w": 4, "h": 2 }
+      },
+      {
+        "item": "viz_active_models",
+        "position": { "x": 8, "y": 0, "w": 4, "h": 2 }
+      },
+      {
+        "item": "viz_call_volume",
+        "position": { "x": 0, "y": 2, "w": 12, "h": 4 }
+      },
+      {
+        "item": "viz_cost_burn",
+        "position": { "x": 0, "y": 6, "w": 6, "h": 4 }
+      },
+      {
+        "item": "viz_latency",
+        "position": { "x": 6, "y": 6, "w": 6, "h": 4 }
+      },
+      {
+        "item": "viz_error_rate",
+        "position": { "x": 0, "y": 10, "w": 6, "h": 4 }
+      },
+      {
+        "item": "viz_version_changes",
+        "position": { "x": 6, "y": 10, "w": 6, "h": 4 }
+      },
+      {
+        "item": "viz_cost_forecast",
+        "position": { "x": 0, "y": 14, "w": 12, "h": 4 }
+      }
+    ]
+  }
+}
+  ]]></definition>
+</dashboard>
