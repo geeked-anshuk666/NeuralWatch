@@ -1,0 +1,6 @@
+service,disclosure_enabled,human_review_required,human_review_threshold,risk_category,ai_act_scope
+checkout-service,1,1,0.95,high_risk,yes
+auth-service,1,0,0.0,limited_risk,yes
+fraud-detection-svc,1,1,0.95,high_risk,yes
+product-svc,1,0,0.0,minimal_risk,yes
+email-svc,0,0,0.0,minimal_risk,yes

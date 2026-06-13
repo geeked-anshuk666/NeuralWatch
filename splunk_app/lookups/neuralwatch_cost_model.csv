@@ -1,0 +1,9 @@
+model,provider,input_cost_per_1k,output_cost_per_1k,last_updated
+gpt-4o,openai,0.005,0.015,2026-01-01
+gpt-4o-mini,openai,0.00015,0.0006,2026-01-01
+gpt-4-turbo,openai,0.01,0.03,2026-01-01
+claude-3-5-sonnet-20241022,anthropic,0.003,0.015,2026-01-01
+claude-3-5-haiku-20241022,anthropic,0.0008,0.004,2026-01-01
+claude-3-opus-20240229,anthropic,0.015,0.075,2026-01-01
+claude-sonnet-4-6,anthropic,0.003,0.015,2026-01-01
+unknown,unknown,0.01,0.03,2026-01-01
