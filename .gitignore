@@ -1,0 +1,47 @@
+# Secrets
+.env
+.env.*
+*.env
+neuralwatch-observability.md
+# NeuralWatch config (contains HEC token)
+.neuralwatch/
+
+# Private documentation (interview prep)
+.private_docs/
+meta_docs/
+docs/
+.agents/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Test artifacts
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Splunk app build artifacts
+splunk_app/*.spl
+
+# Caches and static analysis
+.mypy_cache/
+.ruff_cache/
+
