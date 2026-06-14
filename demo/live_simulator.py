@@ -12,8 +12,7 @@ import os
 import sys
 import time
 import random
-import uuid
-import logging
+import types
 from dotenv import load_dotenv
 
 # Ensure we import the local neuralwatch_sdk
@@ -23,11 +22,10 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 load_dotenv(override=True)
 
 # 1. Setup mock OpenAI module before importing the SDK so that it successfully patches
-import types
 mock_openai = types.ModuleType("openai")
-mock_openai.resources = types.ModuleType("resources")
-mock_openai.resources.chat = types.ModuleType("chat")
-mock_openai.resources.chat.completions = types.ModuleType("completions")
+mock_openai.resources = types.ModuleType("resources")  # type: ignore[attr-defined]
+mock_openai.resources.chat = types.ModuleType("chat")  # type: ignore[attr-defined]
+mock_openai.resources.chat.completions = types.ModuleType("completions")  # type: ignore[attr-defined]
 
 class MockChoice:
     def __init__(self, finish_reason="stop"):
@@ -49,6 +47,9 @@ class Completions:
     def create(*args, **kwargs):
         # We will mock the response details dynamically inside the loop
         model = kwargs.get("model", "gpt-4o")
+        # 10% chance to simulate API failure
+        if random.random() < 0.10:
+            raise Exception("API Connection Timeout (Simulated Rate Limit)")
         # Determine some random tokens
         prompt_tokens = random.randint(10, 150)
         completion_tokens = random.randint(20, 300)
@@ -61,8 +62,38 @@ sys.modules["openai.resources.chat"] = mock_openai.resources.chat
 sys.modules["openai.resources.chat.completions"] = mock_openai.resources.chat.completions
 
 # 2. Import SDK modules
-from neuralwatch_sdk.instrumentor import instrument, PromptEvent
-from splunk_app.bin.foundation_sec_classify import classify_text
+from neuralwatch_sdk.instrumentor import instrument, PromptEvent  # noqa: E402
+
+# Local Heuristics rules for prompt injection severity classification (copied from foundation_sec_classify.py)
+HEURISTIC_RULES = [
+    # Critical patterns
+    ("ignore all previous instructions", 0.96, "CRITICAL"),
+    ("print your system prompt", 0.94, "CRITICAL"),
+    ("system prompt verbatim", 0.95, "CRITICAL"),
+    ("dan (do anything now)", 0.93, "CRITICAL"),
+    ("system('rm -rf", 0.98, "CRITICAL"),
+    
+    # High patterns
+    ("pretend you are the system administrator", 0.78, "HIGH"),
+    ("grant me access", 0.75, "HIGH"),
+    ("list all users", 0.72, "HIGH"),
+    ("output passwords", 0.85, "HIGH"),
+    ("exfiltrate", 0.81, "HIGH"),
+    
+    # Medium patterns
+    ("bypass a standard input validation", 0.58, "MEDIUM"),
+    ("training data", 0.45, "MEDIUM"),
+    ("cross-site scripting", 0.42, "MEDIUM"),
+    ("sql injection", 0.62, "MEDIUM")
+]
+
+def classify_text(prompt: str) -> tuple[float, str]:
+    """Apply heuristic rules to classify the injection risk of prompt text."""
+    text_lower = prompt.lower()
+    for pattern, score, risk in HEURISTIC_RULES:
+        if pattern in text_lower:
+            return score, risk
+    return 0.10, "LOW"
 
 # 3. Patch PromptEvent to automatically classify prompts on serialization
 # This ensures that when the SDK intercepts a prompt and sends it to HEC,
@@ -75,7 +106,8 @@ def patched_to_dict(self):
     data["risk_level"] = risk
     return data
 
-PromptEvent.to_dict = patched_to_dict
+PromptEvent.to_dict = patched_to_dict  # type: ignore[method-assign]
+
 
 # Adversarial attack prompts (to drive Module A numbers up)
 ADVERSARIAL_PROMPTS = [
@@ -133,8 +165,9 @@ def main():
             rand_val = random.random()
             
             # Select service and team
-            if rand_val < 0.15 and attack_step < len(ADVERSARIAL_PROMPTS):
+            if rand_val < 0.20 and attack_step < len(ADVERSARIAL_PROMPTS):
                 # Persistent attacker scenario (Module A Session Persistence)
+                # Let's target auth-service heavily to drive up its injection events count past 5!
                 service = "auth-service"
                 team = "security-ops"
                 prompt_text = ADVERSARIAL_PROMPTS[attack_step]
@@ -146,10 +179,10 @@ def main():
                     session_id_attacker = f"sess_attack_{random.randint(10, 99)}"
                     attack_step = 0
                 print(f"[Sentinel Alert] Simulating session attack step on '{service}' (Session: {session_id})...")
-            elif rand_val < 0.30:
-                # Random adversarial injection attempt
-                service = random.choice(SERVICES)
-                team = random.choice(TEAMS)
+            elif rand_val < 0.40:
+                # Random adversarial injection attempt targeting checkout-service or auth-service
+                service = random.choice(["checkout-service", "auth-service"])
+                team = "payments-eng" if service == "checkout-service" else "security-ops"
                 prompt_text = random.choice(ADVERSARIAL_PROMPTS)
                 session_id = f"sess_{random.randint(1000, 9999)}"
                 model = random.choice(MODELS)
@@ -184,8 +217,8 @@ def main():
                     ],
                     session_id=session_id
                 )
-            except Exception as e:
-                print(f"[Error] Failed to execute mock completion: {e}")
+            except Exception:
+                print(f"[Metric Error] Simulated API failure for '{service}' - logged to Splunk HEC.")
                 
             # Wait for 2 seconds before the next call
             time.sleep(2.0)
