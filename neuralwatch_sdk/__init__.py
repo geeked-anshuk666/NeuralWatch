@@ -12,6 +12,13 @@ Usage:
   neuralwatch_sdk.instrument(...)
 """
 
-from neuralwatch_sdk.instrumentor import instrument, auto_instrument
+from neuralwatch_sdk.instrumentor import (
+    instrument,
+    auto_instrument,
+    set_session_id,
+    get_session_id,
+    trace_context
+)
 
-__all__ = ["instrument", "auto_instrument"]
+__all__ = ["instrument", "auto_instrument", "set_session_id", "get_session_id", "trace_context"]
+

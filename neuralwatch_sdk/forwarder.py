@@ -161,3 +161,22 @@ def _worker_loop() -> None:
             # Prevent worker thread crash
             logger.error(f"[NeuralWatch] Unexpected error in worker loop: {e}")
             time.sleep(1.0)
+
+def flush(timeout: float = 5.0) -> None:
+    """
+    Block and drain the telemetry event queue on exit up to the timeout duration.
+    """
+    if _event_queue.empty():
+        return
+    logger.info(f"[NeuralWatch] Draining telemetry queue ({_event_queue.qsize()} events)...")
+    start = time.time()
+    while not _event_queue.empty():
+        if time.time() - start > timeout:
+            logger.warning("[NeuralWatch] Flush timed out. Remaining events dropped.")
+            break
+        time.sleep(0.1)
+
+# Auto-register clean shutdown hook
+import atexit
+atexit.register(flush)
+

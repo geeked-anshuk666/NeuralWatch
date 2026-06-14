@@ -22,6 +22,8 @@ import uuid
 import hashlib
 import json
 import logging
+import threading
+from contextlib import contextmanager
 from dataclasses import dataclass, field
 from typing import Optional, Any
 from neuralwatch_sdk.cost_estimator import estimate_cost
@@ -35,7 +37,28 @@ _team: str = ""
 _capture_prompts: bool = True
 _instrumented: bool = False
 
+# Thread-local tracing context
+_context = threading.local()
+
+def set_session_id(session_id: Optional[str]) -> None:
+    """Set the session ID for the current thread tracing context."""
+    _context.session_id = session_id
+
+def get_session_id() -> Optional[str]:
+    """Retrieve the session ID for the current thread tracing context."""
+    return getattr(_context, "session_id", None)
+
+@contextmanager
+def trace_context(session_id: Optional[str]):
+    """Context manager to trace a block of AI calls with a scoped session ID."""
+    old_session_id = get_session_id()
+    set_session_id(session_id)
+    try:
+        yield
+    finally:
+        set_session_id(old_session_id)
 # Saved original methods to prevent infinite loops / multiple patches
+
 _original_openai_create: Any = None
 _original_anthropic_create: Any = None
 
@@ -154,6 +177,9 @@ def _wrap_openai_create(original_method: Any) -> Any:
         prompt_text = ""
         prompt_hash = ""
         session_id = kwargs.pop("session_id", None)  # Extract custom session_id if supplied
+        if session_id is None:
+            session_id = get_session_id()
+
 
         try:
             # Extract prompt details
@@ -256,6 +282,9 @@ def _wrap_anthropic_create(original_method: Any) -> Any:
         prompt_text = ""
         prompt_hash = ""
         session_id = kwargs.pop("session_id", None)
+        if session_id is None:
+            session_id = get_session_id()
+
 
         try:
             prompt_text = _get_prompt_text(kwargs, "anthropic")

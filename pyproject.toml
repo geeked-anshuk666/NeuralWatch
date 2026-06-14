@@ -38,7 +38,8 @@ dev = [
 neuralwatch = "neuralwatch_sdk.cli:app"
 
 [tool.setuptools.packages.find]
-include = ["neuralwatch_sdk*", "mcp_agent*"]
+include = ["neuralwatch_sdk*"]
+
 
 [tool.ruff]
 exclude = [
