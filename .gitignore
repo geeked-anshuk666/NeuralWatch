@@ -47,3 +47,5 @@ splunk_app/*.spl
 .mypy_cache/
 .ruff_cache/
 
+.jetro/
+tests/check_counts.py
