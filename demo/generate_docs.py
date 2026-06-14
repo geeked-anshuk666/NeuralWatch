@@ -1,7 +1,7 @@
 """
 Module: generate_docs
 Purpose: Automated script to generate all 22 public docs/ and 10 .private_docs/ files.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Usage:

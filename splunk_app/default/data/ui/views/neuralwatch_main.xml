@@ -1,5 +1,5 @@
 <dashboard theme="dark" version="1.1">
-  <label>NeuralWatch — AI Fleet Observatory</label>
+  <label>NeuralWatch - AI Fleet Observatory</label>
   <description>Module C: Real-time cost, latency, tokens and error tracking across your LLM fleet.</description>
 
   <row>

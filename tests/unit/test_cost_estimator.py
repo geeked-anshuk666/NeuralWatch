@@ -1,7 +1,7 @@
 """
 Module: test_cost_estimator
 Purpose: Unit tests for the cost estimator SDK module.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

@@ -24,7 +24,7 @@ hec_url = os.getenv("SPLUNK_HEC_URL", "https://localhost:8088/services/collector
 hec_token = os.getenv("SPLUNK_HEC_TOKEN")
 
 print("=========================================================")
-print("          NEURALWATCH SDK — DUMMY AI APP DEMO")
+print("          NEURALWATCH SDK - DUMMY AI APP DEMO")
 print("=========================================================")
 
 if not hec_token:
@@ -68,5 +68,5 @@ except Exception as e:
     print(f"\n[!] Call failed as expected or due to missing credentials: {e}")
     print("[*] NeuralWatch has logged the failure details (error class, status, latency) to Splunk.")
 
-print("\nCheck the 'NeuralWatch — AI Fleet Observatory' dashboard under 'customer-support-agent' to see the metrics!")
+print("\nCheck the 'NeuralWatch - AI Fleet Observatory' dashboard under 'customer-support-agent' to see the metrics!")
 print("=========================================================")

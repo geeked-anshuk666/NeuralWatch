@@ -1,5 +1,5 @@
 <dashboard version="2" theme="dark">
-  <label>NeuralWatch — EU AI Act Compliance</label>
+  <label>NeuralWatch - EU AI Act Compliance</label>
   <description>EU AI Act Compliance monitoring across Articles 9, 13, 14, 17, and 72.</description>
   <definition><![CDATA[
 {

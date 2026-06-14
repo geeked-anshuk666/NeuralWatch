@@ -1,4 +1,4 @@
-# NeuralWatch — AI Fleet Observatory for Splunk
+# NeuralWatch - AI Fleet Observatory for Splunk
 
 > **Real-time observability, security, and EU AI Act compliance for enterprise AI systems.**
 
@@ -10,7 +10,7 @@
 
 ---
 
-NeuralWatch is a zero-code-change AI observability platform that gives engineering and compliance teams complete visibility into their AI systems. By instrumenting the OpenAI and Anthropic Python SDKs at the library level, NeuralWatch automatically captures every LLM API call — its cost, latency, model, team attribution, and prompt content — and streams structured telemetry to Splunk in real time. No custom logging. No code changes beyond a single `instrument()` call.
+NeuralWatch is a zero-code-change AI observability platform that gives engineering and compliance teams complete visibility into their AI systems. By instrumenting the OpenAI and Anthropic Python SDKs at the library level, NeuralWatch automatically captures every LLM API call - its cost, latency, model, team attribution, and prompt content - and streams structured telemetry to Splunk in real time. No custom logging. No code changes beyond a single `instrument()` call.
 
 ---
 
@@ -18,10 +18,10 @@ NeuralWatch is a zero-code-change AI observability platform that gives engineeri
 
 - [Architecture Overview](#architecture-overview)
 - [Module Breakdown](#module-breakdown)
-  - [Module A — Prompt Injection Sentinel](#module-a--prompt-injection-sentinel)
-  - [Module B — NLP Query Agent (MCP)](#module-b--nlp-query-agent-mcp)
-  - [Module C — AI Fleet Observatory](#module-c--ai-fleet-observatory)
-  - [Module D — EU AI Act Compliance](#module-d--eu-ai-act-compliance)
+  - [Module A - Prompt Injection Sentinel](#module-a--prompt-injection-sentinel)
+  - [Module B - NLP Query Agent (MCP)](#module-b--nlp-query-agent-mcp)
+  - [Module C - AI Fleet Observatory](#module-c--ai-fleet-observatory)
+  - [Module D - EU AI Act Compliance](#module-d--eu-ai-act-compliance)
 - [Data Flow Diagram](#data-flow-diagram)
 - [Repository Structure](#repository-structure)
 - [Quick Start](#quick-start)
@@ -39,7 +39,7 @@ NeuralWatch is a zero-code-change AI observability platform that gives engineeri
 - [Splunk App Dashboards](#splunk-app-dashboards)
 - [Security Design](#security-design)
 - [EU AI Act Compliance Scoring](#eu-ai-act-compliance-scoring)
-- [MCP Agent — Natural Language Querying](#mcp-agent--natural-language-querying)
+- [MCP Agent - Natural Language Querying](#mcp-agent--natural-language-querying)
 - [Configuration Reference](#configuration-reference)
 - [Development](#development)
 - [License](#license)
@@ -96,7 +96,7 @@ NeuralWatch is a zero-code-change AI observability platform that gives engineeri
 
 ## Module Breakdown
 
-### Module A — Prompt Injection Sentinel
+### Module A - Prompt Injection Sentinel
 
 The Prompt Injection Sentinel captures every prompt sent through the instrumented LLM clients and classifies it for adversarial content using a heuristic classification engine inspired by the Foundation-Sec model architecture.
 
@@ -132,7 +132,7 @@ User Prompt ──► SDK intercepts ──► foundation_sec_classify.py
 
 ---
 
-### Module B — NLP Query Agent (MCP)
+### Module B - NLP Query Agent (MCP)
 
 The NeuralWatch MCP Agent provides natural language query access to all telemetry data in Splunk. It translates English questions into SPL, executes them through the Splunk Management API, and synthesizes a human-readable answer using an LLM.
 
@@ -169,7 +169,7 @@ python mcp_agent/cli.py
 
 ---
 
-### Module C — AI Fleet Observatory
+### Module C - AI Fleet Observatory
 
 The AI Fleet Observatory is the primary real-time operational dashboard, providing live visibility into AI API costs, latency, token consumption, and model usage patterns across all instrumented services.
 
@@ -187,7 +187,7 @@ The AI Fleet Observatory is the primary real-time operational dashboard, providi
 
 ---
 
-### Module D — EU AI Act Compliance
+### Module D - EU AI Act Compliance
 
 NeuralWatch continuously computes EU AI Act compliance scores for every monitored service, mapping live telemetry data and static policy baselines to five key articles.
 
@@ -196,11 +196,11 @@ NeuralWatch continuously computes EU AI Act compliance scores for every monitore
 ```
 Overall Score = (Art9 + Art13 + Art14 + Art17 + Art72) / 5
 
-Art.  9 — Risk Management:     100 - (high_incidents × 5), floored at 0
-Art. 13 — Transparency:        100 if disclosure_enabled = 1, else 0
-Art. 14 — Human Oversight:     100 if no required review, else threshold × 100
-Art. 17 — Quality Management:  (1 - error_rate) × 100
-Art. 72 — Systemic Risk:       90 (baseline, adjusted by latency drift)
+Art.  9 - Risk Management:     100 - (high_incidents × 5), floored at 0
+Art. 13 - Transparency:        100 if disclosure_enabled = 1, else 0
+Art. 14 - Human Oversight:     100 if no required review, else threshold × 100
+Art. 17 - Quality Management:  (1 - error_rate) × 100
+Art. 72 - Systemic Risk:       90 (baseline, adjusted by latency drift)
 
 Status:  ≥ 90 → ✅ COMPLIANT
          ≥ 70 → ⚠️ AT RISK
@@ -304,8 +304,8 @@ NeuralWatch/
 | Python | ≥ 3.9 |
 | Splunk Enterprise | ≥ 9.0 |
 | Splunk HTTP Event Collector | Enabled |
-| OpenAI SDK | ≥ 1.0.0 (optional — only if using real calls) |
-| Anthropic SDK | ≥ 0.3.0 (optional — only if using real calls) |
+| OpenAI SDK | ≥ 1.0.0 (optional - only if using real calls) |
+| Anthropic SDK | ≥ 0.3.0 (optional - only if using real calls) |
 
 ---
 
@@ -334,10 +334,10 @@ neuralwatch init
 ```
 
 You will be prompted for:
-- **Service name** — the name of your application (e.g., `checkout-service`)
-- **Team name** — the owning team (e.g., `payments-eng`)
-- **Splunk HEC URL** — e.g., `https://localhost:8088/services/collector/event`
-- **HEC Token** — your Splunk HEC token (masked input)
+- **Service name** - the name of your application (e.g., `checkout-service`)
+- **Team name** - the owning team (e.g., `payments-eng`)
+- **Splunk HEC URL** - e.g., `https://localhost:8088/services/collector/event`
+- **HEC Token** - your Splunk HEC token (masked input)
 
 This creates `.neuralwatch/config.json` with your settings.
 
@@ -361,10 +361,10 @@ instrument(
     verify_ssl=False
 )
 
-# Optional: set a session or user ID for tracing (type-safe — no SDK changes needed)
+# Optional: set a session or user ID for tracing (type-safe - no SDK changes needed)
 set_session_id("user-session-abc123")
 
-# Use OpenAI as normal — NeuralWatch captures everything automatically
+# Use OpenAI as normal - NeuralWatch captures everything automatically
 client = openai.OpenAI(api_key="your-key")
 response = client.chat.completions.create(
     model="gpt-4o",
@@ -438,7 +438,7 @@ Or create them manually in Splunk Web → **Settings** → **Indexes**:
 
 ### 5. Run the Live Simulator
 
-The simulator provides a continuous stream of realistic AI telemetry events — including normal API calls, adversarial injection attempts, and simulated persistent attacker sessions — without requiring a real OpenAI API key.
+The simulator provides a continuous stream of realistic AI telemetry events - including normal API calls, adversarial injection attempts, and simulated persistent attacker sessions - without requiring a real OpenAI API key.
 
 ```bash
 python demo/live_simulator.py
@@ -474,7 +474,7 @@ instrument(
 )
 ```
 
-**What it patches:** `openai.resources.chat.completions.Completions.create` and `anthropic.resources.messages.Messages.create` using monkey-patching with `setattr`. The original methods are preserved and called — NeuralWatch only wraps them.
+**What it patches:** `openai.resources.chat.completions.Completions.create` and `anthropic.resources.messages.Messages.create` using monkey-patching with `setattr`. The original methods are preserved and called - NeuralWatch only wraps them.
 
 **Events emitted per API call:**
 
@@ -487,7 +487,7 @@ instrument(
 
 ### `set_session_id()` and `trace_context()`
 
-Thread-local session tracking — **type-safe** and compatible with native SDK type checkers.
+Thread-local session tracking - **type-safe** and compatible with native SDK type checkers.
 
 ```python
 from neuralwatch_sdk import set_session_id, trace_context
@@ -589,7 +589,7 @@ NeuralWatch follows secure-by-default design principles:
 | **Secret Isolation** | HEC tokens never logged or embedded in source. Read from environment variables or `.neuralwatch/config.json` (git-ignored). |
 | **Prompt Hashing** | Full prompt text is stored under `nw:prompt` sourcetype only when `capture_prompts=True`. Prompt hashes (SHA-256, truncated to 16 chars) are stored with AI call events only. |
 | **Non-Blocking Forwarding** | All telemetry is enqueued asynchronously. The forwarder operates on a background daemon thread and never blocks your application's hot path. |
-| **Graceful Failure** | Every instrumentation hook is wrapped in a `try/except`. If NeuralWatch encounters an error, your application continues normally — telemetry is silently dropped. |
+| **Graceful Failure** | Every instrumentation hook is wrapped in a `try/except`. If NeuralWatch encounters an error, your application continues normally - telemetry is silently dropped. |
 | **SSL Verification** | Configurable per deployment. Disabled by default for local Splunk setups with self-signed certificates. Recommend `verify_ssl=True` for production. |
 | **Queue Overflow Protection** | The forwarder queue has a maximum capacity of 10,000 events. Overflow events are dropped with a warning log, preventing memory growth. |
 | **atexit Flush** | On application shutdown, the SDK waits up to 5 seconds for the telemetry queue to fully drain, ensuring no events are lost on clean exits. |
@@ -644,7 +644,7 @@ python splunk_app/bin/compliance_score.py
 
 ---
 
-## MCP Agent — Natural Language Querying
+## MCP Agent - Natural Language Querying
 
 The `mcp_agent` module implements a conversational query interface over all NeuralWatch Splunk indexes.
 
@@ -710,10 +710,10 @@ OPENAI_API_KEY=sk-your-openai-key
 
 | Parameter | Type | Default | Description |
 |---|---|---|---|
-| `service` | `str` | — | Service name for telemetry attribution |
-| `team` | `str` | — | Team name for telemetry attribution |
-| `splunk_hec_url` | `str` | — | Splunk HEC endpoint URL |
-| `splunk_hec_token` | `str` | — | Splunk HEC token |
+| `service` | `str` | - | Service name for telemetry attribution |
+| `team` | `str` | - | Team name for telemetry attribution |
+| `splunk_hec_url` | `str` | - | Splunk HEC endpoint URL |
+| `splunk_hec_token` | `str` | - | Splunk HEC token |
 | `capture_prompts` | `bool` | `True` | Enable prompt capture to `neuralwatch_injections` |
 | `verify_ssl` | `bool` | `False` | Enable SSL certificate verification for HEC requests |
 
@@ -758,23 +758,23 @@ tar -czf splunk_app.tar.gz splunk_app/
 
 | Commit | Description |
 |---|---|
-| `d4d0faa` | `feat(sdk)` — Core monkey-patching engine and non-blocking HEC forwarder |
-| `22fff19` | `feat(splunk)` — App metadata, custom props, cost/compliance lookups |
-| `bad5602` | `feat(observability)` — AI Fleet Observatory dashboard and bulk simulator |
-| `95555fd` | `feat(security)` — Prompt Injection Sentinel and Foundation-Sec classifier |
-| `d87a5b8` | `feat(mcp)` — MCP client, agent bridge, and NL-to-SPL compiler |
-| `8ec8be3` | `feat(compliance)` — EU AI Act scoring dashboard and unit/integration tests |
-| `8273880` | `feat(demo)` — Continuous live telemetry simulator with mocked OpenAI client |
-| `1b21137` | `fix(compliance)` — Live index queries and resolved empty dashboard panels |
-| `f517893` | `feat(sdk)` — Thread-local session tracking, atexit flush, PyPI namespace isolation |
-| `4c3d3b8` | `feat(demo)` — Simulator updated to align with EU AI Act dashboard risk categories |
-| `1c14979` | `build(release)` — Finalized Splunk App release artifact v1.0.0 |
+| `d4d0faa` | `feat(sdk)` - Core monkey-patching engine and non-blocking HEC forwarder |
+| `22fff19` | `feat(splunk)` - App metadata, custom props, cost/compliance lookups |
+| `bad5602` | `feat(observability)` - AI Fleet Observatory dashboard and bulk simulator |
+| `95555fd` | `feat(security)` - Prompt Injection Sentinel and Foundation-Sec classifier |
+| `d87a5b8` | `feat(mcp)` - MCP client, agent bridge, and NL-to-SPL compiler |
+| `8ec8be3` | `feat(compliance)` - EU AI Act scoring dashboard and unit/integration tests |
+| `8273880` | `feat(demo)` - Continuous live telemetry simulator with mocked OpenAI client |
+| `1b21137` | `fix(compliance)` - Live index queries and resolved empty dashboard panels |
+| `f517893` | `feat(sdk)` - Thread-local session tracking, atexit flush, PyPI namespace isolation |
+| `4c3d3b8` | `feat(demo)` - Simulator updated to align with EU AI Act dashboard risk categories |
+| `1c14979` | `build(release)` - Finalized Splunk App release artifact v1.0.0 |
 
 ---
 
 ## License
 
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
+This project is licensed under the **MIT License** - see the [LICENSE](LICENSE) file for details.
 
 ```
 MIT License

@@ -1,7 +1,7 @@
 """
 Module: cli
 Purpose: Typer CLI for NeuralWatch configuration, status inspection, and test event generation.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:
@@ -25,7 +25,7 @@ from rich.console import Console
 from rich.panel import Panel
 from rich.table import Table
 
-app = typer.Typer(name="neuralwatch", help="NeuralWatch CLI — AI Fleet Observatory for Splunk")
+app = typer.Typer(name="neuralwatch", help="NeuralWatch CLI - AI Fleet Observatory for Splunk")
 console = Console()
 
 CONFIG_DIR = ".neuralwatch"

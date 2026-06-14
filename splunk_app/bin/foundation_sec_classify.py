@@ -1,7 +1,7 @@
 """
 Module: foundation_sec_classify
 Purpose: Simulates adversarial classification for telemetry events using a local heuristic model.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

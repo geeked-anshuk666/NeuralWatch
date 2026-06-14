@@ -1,7 +1,7 @@
 """
 Module: test_forwarder
 Purpose: Unit tests for the async HEC forwarder SDK module.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

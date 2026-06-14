@@ -1,7 +1,7 @@
 """
 Module: agent
 Purpose: Core natural language analytics agent chaining Splunk MCP tools and synthesizing answers.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:
@@ -246,7 +246,7 @@ class NeuralWatchAgent:
             total = sum(int(r.get("total_calls", 0)) for r in results_data)
             return f"Total AI calls: **{total:,}** across {len(results_data)} service(s)."
 
-        # Generic fallback — show field names and first row values
+        # Generic fallback - show field names and first row values
         fields = list(row.keys())[:6]
         summary = ", ".join(f"{f}={row[f]}" for f in fields)
         return f"Retrieved {len(results_data)} row(s) from Splunk. Sample: {summary}."

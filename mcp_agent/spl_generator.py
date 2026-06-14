@@ -1,7 +1,7 @@
 """
 Module: spl_generator
 Purpose: Generates Splunk search queries (SPL) from natural language questions using an LLM.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:
@@ -87,7 +87,7 @@ def _validate_spl(spl: str) -> bool:
     # Reject markdown bleed
     if "```" in spl or spl.startswith("#"):
         return False
-    # Must contain at least one pipe — bare "index=X" with no stats/timechart is useless
+    # Must contain at least one pipe - bare "index=X" with no stats/timechart is useless
     if "|" not in spl:
         return False
     # Reject known bad stats patterns like "stats total by (field)"
@@ -156,7 +156,7 @@ def generate_spl(question: str) -> str:
             spl_query = "\n".join(lines[1:-1]) if lines[-1].startswith("```") else "\n".join(lines[1:])
         spl_query = spl_query.replace("`", "").strip()
 
-        # Validate before returning — fall back if LLM produced bad SPL
+        # Validate before returning - fall back if LLM produced bad SPL
         if not _validate_spl(spl_query):
             logger.warning(f"[NeuralWatch] LLM produced invalid SPL: '{spl_query}'. Using static fallback.")
             return _fallback_spl_mapping(question)

@@ -1,7 +1,7 @@
 """
 Module: splunk_setup
 Purpose: Programmatically creates required NeuralWatch indexes in Splunk via REST API.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

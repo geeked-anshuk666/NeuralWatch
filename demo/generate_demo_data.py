@@ -1,7 +1,7 @@
 """
 Module: generate_demo_data
 Purpose: Generates and populates 7 days of reproducible synthetic AI telemetry events into Splunk HEC.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

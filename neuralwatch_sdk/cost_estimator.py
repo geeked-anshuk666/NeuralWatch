@@ -1,7 +1,7 @@
 """
 Module: cost_estimator
 Purpose: Estimates the USD cost of LLM calls based on tokens and model.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

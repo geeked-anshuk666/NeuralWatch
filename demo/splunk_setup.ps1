@@ -1,6 +1,6 @@
 # PowerShell Script: splunk_setup.ps1
 # Purpose: Create indexes and configure Splunk HTTP Event Collector (HEC) on Windows
-# Part of: NeuralWatch — AI Fleet Observatory for Splunk
+# Part of: NeuralWatch - AI Fleet Observatory for Splunk
 # Hackathon: Splunk Agentic Ops 2026
 
 # Load .env file

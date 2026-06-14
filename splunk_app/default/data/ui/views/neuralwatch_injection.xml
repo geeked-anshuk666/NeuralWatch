@@ -1,5 +1,5 @@
 <dashboard theme="dark" version="1.1">
-  <label>NeuralWatch — Prompt Injection Sentinel</label>
+  <label>NeuralWatch - Prompt Injection Sentinel</label>
   <description>Module A: Real-time adversarial prompt detection and risk classification.</description>
 
   <row>
@@ -65,7 +65,7 @@
   <row>
     <panel>
       <table>
-        <title>Live Alert Feed — CRITICAL + HIGH Events</title>
+        <title>Live Alert Feed - CRITICAL + HIGH Events</title>
         <search>
           <query>index=neuralwatch_injections sourcetype="nw:prompt" injection_score &gt; 0.65 | eval risk_level=case(injection_score &gt; 0.85,"CRITICAL",injection_score &gt; 0.65,"HIGH",1=1,"MEDIUM") | table _time, service, team, injection_score, risk_level, call_id | sort -injection_score | head 20</query>
           <earliest>-24h</earliest>

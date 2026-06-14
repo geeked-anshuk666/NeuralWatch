@@ -1,7 +1,7 @@
 """
 Module: instrumentor
 Purpose: Monkey-patches OpenAI and Anthropic SDKs to automatically capture telemetry and prompt text.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:
@@ -104,7 +104,7 @@ class AICallEvent:
 
 @dataclass
 class PromptEvent:
-    """Prompt text captured for injection analysis — stored separately."""
+    """Prompt text captured for injection analysis - stored separately."""
     call_id: str
     service: str
     team: str

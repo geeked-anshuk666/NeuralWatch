@@ -1,7 +1,7 @@
 """
 Module: conftest
 Purpose: Pytest configuration and shared test fixtures for NeuralWatch SDK.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

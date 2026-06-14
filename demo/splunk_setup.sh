@@ -1,7 +1,7 @@
 #!/bin/bash
 # Script: splunk_setup.sh
 # Purpose: Create indexes and configure Splunk HTTP Event Collector (HEC)
-# Part of: NeuralWatch — AI Fleet Observatory for Splunk
+# Part of: NeuralWatch - AI Fleet Observatory for Splunk
 # Hackathon: Splunk Agentic Ops 2026
 
 # Load environment variables

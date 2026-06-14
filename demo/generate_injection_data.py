@@ -1,7 +1,7 @@
 """
 Module: generate_injection_data
 Purpose: Generates exactly 50 synthetic prompt injection events for Sentinel demonstration.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

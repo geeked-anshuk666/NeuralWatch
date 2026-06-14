@@ -1,7 +1,7 @@
 """
 Module: cli
 Purpose: Terminal command line interface for natural language interrogation of Splunk.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

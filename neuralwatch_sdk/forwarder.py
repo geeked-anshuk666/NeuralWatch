@@ -1,7 +1,7 @@
 """
 Module: forwarder
 Purpose: Asynchronous, non-blocking Splunk HTTP Event Collector (HEC) telemetry forwarder.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

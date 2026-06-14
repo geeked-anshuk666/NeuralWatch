@@ -1,7 +1,7 @@
 """
 Module: mcp_client
 Purpose: Establishes connection to Splunk REST API, mirroring Splunk MCP Server v1.2 tool behaviors.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

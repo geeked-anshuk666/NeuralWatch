@@ -1,7 +1,7 @@
 """
 Module: live_simulator
 Purpose: Continuous live streaming telemetry simulator using the actual NeuralWatch SDK.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Usage:

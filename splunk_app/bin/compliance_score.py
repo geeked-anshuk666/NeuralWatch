@@ -1,7 +1,7 @@
 """
 Module: compliance_score
 Purpose: Standalone utility to query and print EU AI Act compliance report from Splunk indexes.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:

@@ -1,7 +1,7 @@
 """
 Module: test_instrumentor
 Purpose: Unit tests for the SDK patching/instrumentation module.
-Part of: NeuralWatch — AI Fleet Observatory for Splunk
+Part of: NeuralWatch - AI Fleet Observatory for Splunk
 Hackathon: Splunk Agentic Ops 2026
 
 Dependencies:
