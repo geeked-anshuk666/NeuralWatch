@@ -3,6 +3,7 @@
 > **Real-time observability, security, and EU AI Act compliance for enterprise AI systems.**
 
 [![Python](https://img.shields.io/badge/Python-3.9%2B-blue?logo=python&logoColor=white)](https://python.org)
+[![PyPI](https://img.shields.io/pypi/v/neuralwatch-splunk.svg?logo=pypi&logoColor=white)](https://pypi.org/project/neuralwatch-splunk/)
 [![Splunk](https://img.shields.io/badge/Splunk-Enterprise-green?logo=splunk&logoColor=white)](https://splunk.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 [![OpenAI](https://img.shields.io/badge/OpenAI-Compatible-412991?logo=openai&logoColor=white)](https://openai.com)
@@ -285,7 +286,7 @@ NeuralWatch/
 
 ### 1. Install the SDK
 
-**From PyPI (Production):**
+**From PyPI (Production - [pypi.org/project/neuralwatch-splunk](https://pypi.org/project/neuralwatch-splunk/)):**
 ```bash
 pip install neuralwatch-splunk
 ```
