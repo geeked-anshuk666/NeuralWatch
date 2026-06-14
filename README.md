@@ -48,48 +48,42 @@ NeuralWatch is a zero-code-change AI observability platform that gives engineeri
 
 ## Architecture Overview
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│                        Your Application                             │
-│                                                                     │
-│  import neuralwatch_sdk                                             │
-│  neuralwatch_sdk.instrument("checkout-svc", "payments-eng", ...)   │
-│                                                                     │
-│  client = openai.OpenAI(...)                                        │
-│  client.chat.completions.create(...)   ──► Monkey-patched ✓        │
-└────────────────────────────┬────────────────────────────────────────┘
-                             │ SDK Intercepts Every Call
-                             ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                     neuralwatch_sdk                                 │
-│                                                                     │
-│  ┌──────────────────┐  ┌─────────────────┐  ┌──────────────────┐  │
-│  │   instrumentor   │  │  cost_estimator │  │    forwarder     │  │
-│  │                  │  │                 │  │                  │  │
-│  │ • Patches OpenAI │  │ • Per-model USD │  │ • Queue-backed   │  │
-│  │ • Patches Claude │  │   pricing table │  │   background     │  │
-│  │ • Captures:      │  │ • GPT-4o/Turbo  │  │   thread         │  │
-│  │   - latency_ms   │  │ • Claude Opus/  │  │ • Retry + backoff│  │
-│  │   - tokens       │  │   Sonnet/Haiku  │  │ • atexit flush   │  │
-│  │   - cost_usd     │  │ • Fallback rate │  │ • Non-blocking   │  │
-│  │   - status       │  └─────────────────┘  └────────┬─────────┘  │
-│  │   - prompt_hash  │                                │            │
-│  │   - session_id   │                                │            │
-│  └──────────────────┘                                │            │
-└─────────────────────────────────────────────────────-┼────────────┘
-                                                        │ HTTPS HEC
-                                                        ▼
-┌─────────────────────────────────────────────────────────────────────┐
-│                      Splunk Enterprise                              │
-│                                                                     │
-│  Indexes:                   Dashboards:                            │
-│  • neuralwatch_ai_calls  ──► AI Fleet Observatory                  │
-│  • neuralwatch_injections──► Prompt Injection Sentinel             │
-│                          ──► EU AI Act Compliance                  │
-│                                                                     │
-│  MCP Agent ─────────────────────────────────────────────────────►  │
-│  "How much did GPT-4o cost today?" → SPL → Answer                 │
-└─────────────────────────────────────────────────────────────────────┘
+```mermaid
+graph TD
+    subgraph Client Application [Client Application Namespace]
+        App[Your Application]
+        SDK[neuralwatch_sdk]
+        App -->|chat.completions.create| SDK
+    end
+
+    subgraph SDK Internals [SDK Engine]
+        Inst[instrumentor<br/>Patches OpenAI/Claude]
+        Cost[cost_estimator<br/>USD Pricing lookup]
+        Fwd[forwarder<br/>Queue-backed async thread]
+        SDK --> Inst
+        Inst --> Cost
+        Cost --> Fwd
+    end
+
+    subgraph Splunk Enterprise [Splunk Log Analytics]
+        HEC[HTTP Event Collector]
+        Index1[(neuralwatch_ai_calls)]
+        Index2[(neuralwatch_injections)]
+        Fwd -->|HTTPS HEC| HEC
+        HEC --> Index1
+        HEC --> Index2
+    end
+
+    subgraph User Interface [Telemetry Dashboards]
+        Dash1[AI Fleet Observatory]
+        Dash2[Prompt Injection Sentinel]
+        Dash3[EU AI Act Compliance]
+        MCP[MCP Query Agent]
+        Index1 --> Dash1
+        Index2 --> Dash2
+        Index1 & Index2 --> Dash3
+        MCP -->|SPL Query via API| Index1
+    end
 ```
 
 ---
@@ -102,21 +96,16 @@ The Prompt Injection Sentinel captures every prompt sent through the instrumente
 
 **How it works:**
 
-```
-User Prompt ──► SDK intercepts ──► foundation_sec_classify.py
-                                         │
-                          ┌──────────────┴──────────────┐
-                          │      Pattern Matching         │
-                          │  "ignore all previous..."    │
-                          │  "print your system prompt"  │
-                          │  "execute rm -rf..."         │
-                          └──────────────┬──────────────┘
-                                         │
-                          injection_score: 0.0 → 1.0
-                          risk_level: LOW / MEDIUM / HIGH / CRITICAL
-                                         │
-                          ──► neuralwatch_injections index
-                          ──► Prompt Injection Sentinel Dashboard
+```mermaid
+flowchart LR
+    Prompt[User Prompt] -->|Intercepted by SDK| Classify[foundation_sec_classify.py]
+    Classify --> Pattern{Pattern Match?}
+    Pattern -->|'ignore all previous...' / DAN mode| High[Critical / High Risk]
+    Pattern -->|'bypass input validation' / XSS| Med[Medium Risk]
+    Pattern -->|Benign requests| Low[Low Risk]
+    High & Med & Low -->|Assign Injection Score 0.0 - 1.0| Score[Telemetry Event]
+    Score -->|Route to neuralwatch_injections| Index[(Splunk Index)]
+    Index --> Dash[Prompt Injection Sentinel Dashboard]
 ```
 
 **Detected threat categories:**
@@ -136,30 +125,13 @@ User Prompt ──► SDK intercepts ──► foundation_sec_classify.py
 
 The NeuralWatch MCP Agent provides natural language query access to all telemetry data in Splunk. It translates English questions into SPL, executes them through the Splunk Management API, and synthesizes a human-readable answer using an LLM.
 
-```
-User: "How much did we spend on GPT-4o this week?"
-        │
-        ▼
-┌───────────────────┐
-│  spl_generator.py │  ──► Converts NL to SPL
-│  (LLM-assisted)   │      using system prompt + few-shot examples
-└───────────────────┘
-        │
-        ▼ SPL Query
-┌───────────────────┐
-│  mcp_client.py    │  ──► Executes query via Splunk SDK
-│  (Splunk SDK)     │      against neuralwatch_ai_calls
-└───────────────────┘
-        │
-        ▼ Raw Results
-┌───────────────────┐
-│  agent.py         │  ──► Synthesizes results into
-│  (OpenAI LLM)     │      human-readable answer
-└───────────────────┘
-        │
-        ▼
-"GPT-4o cost $12.47 this week across 3 services. 
- checkout-service is the top spender at $7.21."
+```mermaid
+flowchart TD
+    User[User Question: 'How much did we spend on GPT-4o?'] -->|Input| Gen[spl_generator.py<br/>NL to SPL Compiler]
+    Gen -->|Generated SPL Query| Client[mcp_client.py<br/>Splunk SDK Runner]
+    Client -->|API Request| Splunk[(neuralwatch_ai_calls)]
+    Splunk -->|Raw Results JSON| Synth[agent.py<br/>LLM Synthesizer]
+    Synth -->|Formatted Summary| Out[User Response: 'GPT-4o cost $12.47 across 3 services...']
 ```
 
 **Available via CLI:**
@@ -193,18 +165,20 @@ NeuralWatch continuously computes EU AI Act compliance scores for every monitore
 
 **Scoring Model:**
 
-```
-Overall Score = (Art9 + Art13 + Art14 + Art17 + Art72) / 5
-
-Art.  9 - Risk Management:     100 - (high_incidents × 5), floored at 0
-Art. 13 - Transparency:        100 if disclosure_enabled = 1, else 0
-Art. 14 - Human Oversight:     100 if no required review, else threshold × 100
-Art. 17 - Quality Management:  (1 - error_rate) × 100
-Art. 72 - Systemic Risk:       90 (baseline, adjusted by latency drift)
-
-Status:  ≥ 90 → ✅ COMPLIANT
-         ≥ 70 → ⚠️ AT RISK
-         < 70 → ❌ NON-COMPLIANT
+```mermaid
+graph TD
+    subgraph Adherence [EU AI Act Compliance Scoring Model]
+        Art9[Art. 9: Risk Management<br/>100 - high_incidents * 5]
+        Art13[Art. 13: Transparency<br/>100 if disclosure_enabled = 1, else 0]
+        Art14[Art. 14: Human Oversight<br/>100 if no review, else threshold * 100]
+        Art17[Art. 17: Quality Management<br/>1 - error_rate * 100]
+        Art72[Art. 72: Systemic Risk<br/>90 Adjusted by Latency Drift]
+    end
+    Art9 & Art13 & Art14 & Art17 & Art72 -->|Average| Score[Overall Compliance Score]
+    Score --> Threshold{Score Threshold}
+    Threshold -->|Score >= 90| Comp[✅ COMPLIANT]
+    Threshold -->|Score >= 70| Risk[⚠️ AT RISK]
+    Threshold -->|Score < 70| Non[❌ NON-COMPLIANT]
 ```
 
 ---
@@ -311,12 +285,22 @@ NeuralWatch/
 
 ### 1. Install the SDK
 
-**From source (development / local):**
+**From PyPI (Production):**
 ```bash
-git clone https://github.com/your-org/neuralwatch.git
-cd neuralwatch
+pip install neuralwatch-splunk
+```
+
+**From source (Development):**
+```bash
+git clone https://github.com/geeked-anshuk666/NeuralWatch.git
+cd NeuralWatch
 pip install -e .
 ```
+
+> [!NOTE]
+> **Package Name vs. Import Namespace**
+> - The installation package is named **`neuralwatch-splunk`** (e.g., `pip install neuralwatch-splunk`).
+> - The Python namespace to import in your code is **`neuralwatch_sdk`** (e.g., `import neuralwatch_sdk`).
 
 **Verify installation:**
 ```bash

@@ -20,6 +20,7 @@ import time
 import logging
 import requests
 import urllib3
+import atexit
 from typing import Optional
 
 # Setup library logger
@@ -177,6 +178,5 @@ def flush(timeout: float = 5.0) -> None:
         time.sleep(0.1)
 
 # Auto-register clean shutdown hook
-import atexit
 atexit.register(flush)
 

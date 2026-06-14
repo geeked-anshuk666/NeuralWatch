@@ -15,8 +15,8 @@ sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")
 load_dotenv(override=True)
 
 # 1. Import the actual OpenAI client and the NeuralWatch SDK
-import openai
-from neuralwatch_sdk import instrument, set_session_id
+import openai  # noqa: E402
+from neuralwatch_sdk import instrument, set_session_id  # noqa: E402
 
 # 2. Setup environment settings
 api_key = os.getenv("OPENAI_API_KEY", "mock-key-if-not-testing-live")
@@ -32,7 +32,7 @@ if not hec_token:
     sys.exit(1)
 
 # 3. Initialize the NeuralWatch SDK (Only 1 call needed at app startup!)
-print(f"[*] Initializing NeuralWatch for service: 'customer-support-agent'...")
+print("[*] Initializing NeuralWatch for service: 'customer-support-agent'...")
 instrument(
     service="customer-support-agent",
     team="support-eng",
