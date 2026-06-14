@@ -6,7 +6,6 @@ neuralwatch-observability.md
 # NeuralWatch config (contains HEC token)
 .neuralwatch/
 
-splunk_app.tar.gz
 
 # Private documentation (interview prep)
 .private_docs/
