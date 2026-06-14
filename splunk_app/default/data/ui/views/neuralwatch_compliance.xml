@@ -2,144 +2,230 @@
   <label>NeuralWatch — EU AI Act Compliance</label>
   <description>Module D: EU AI Act compliance tracking across Articles 9, 13, 14, 17, and 72.</description>
 
+  <!-- ROW 1: Core EU AI Act KPIs — all live from indexes or computed compliance scores -->
   <row>
     <panel>
       <single>
-        <title>Services Fully Compliant</title>
+        <title>Services Fully Compliant (Art. 13 + 14)</title>
         <search>
-          <query>| inputlookup neuralwatch_compliance_baseline.csv | stats sum(eval(if(disclosure_enabled=1 AND human_review_required=0,1,0))) as compliant_count</query>
+          <query>| inputlookup neuralwatch_compliance_baseline.csv | where disclosure_enabled=1 AND human_review_required=0 | stats count as compliant</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
-        
-        <refresh>2s</refresh>
-
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
         </search>
         <option name="drilldown">none</option>
-        <option name="underLabel">disclosure + no review required</option>
-      </single>
-    </panel>
-    <panel>
-      <single>
-        <title>Services Requiring Human Review (Art. 14)</title>
-        <search>
-          <query>| inputlookup neuralwatch_compliance_baseline.csv | stats sum(eval(if(human_review_required=1,1,0))) as requires_review</query>
-          <earliest>-24h</earliest>
-          <latest>now</latest>
-        
-        <refresh>2s</refresh>
-
-        </search>
-        <option name="drilldown">none</option>
+        <option name="underLabel">Disclosure enabled, no review gap</option>
       </single>
     </panel>
     <panel>
       <single>
         <title>Active Injection Incidents (Art. 9)</title>
         <search>
-          <query>index=neuralwatch_injections sourcetype="nw:prompt" injection_score>0.65 | stats count as incidents</query>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" | spath | eval risk_level=upper(risk_level) | where risk_level="HIGH" OR risk_level="CRITICAL" | stats count as incidents</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
-        
-        <refresh>2s</refresh>
-
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
         </search>
         <option name="drilldown">none</option>
-        <option name="underLabel">High + Critical threats</option>
+        <option name="underLabel">High + Critical severity only</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[0,1,10]</option>
       </single>
     </panel>
     <panel>
       <single>
-        <title>Total Services Monitored</title>
+        <title>Services Requiring Human Review (Art. 14)</title>
         <search>
-          <query>| inputlookup neuralwatch_compliance_baseline.csv | stats dc(service) as total_services</query>
+          <query>| inputlookup neuralwatch_compliance_baseline.csv | where human_review_required=1 | stats count as needs_review</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
-        
-        <refresh>2s</refresh>
-
+          <refresh>30s</refresh>
+          <refreshType>delay</refreshType>
         </search>
         <option name="drilldown">none</option>
+        <option name="underLabel">Human oversight gap identified</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[0,1,3]</option>
+      </single>
+    </panel>
+    <panel>
+      <single>
+        <title>Quality Error Rate % (Art. 17)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | spath | stats count as total, sum(eval(if(status="error",1,0))) as errors | eval error_pct=round(errors/total*100,1) | fields error_pct</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="drilldown">none</option>
+        <option name="underLabel">% failed AI calls — quality threshold</option>
+        <option name="unit">%</option>
+        <option name="colorMode">block</option>
+        <option name="rangeColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
+        <option name="rangeValues">[0,5,15]</option>
       </single>
     </panel>
   </row>
 
+  <!-- ROW 2: Per-Service Compliance Scorecard (joined live + static) -->
   <row>
     <panel>
       <table>
-        <title>Per-Service Compliance Status (EU AI Act)</title>
+        <title>Per-Service EU AI Act Compliance Scorecard</title>
         <search>
-          <query>| inputlookup neuralwatch_compliance_baseline.csv | join type=left service [search index=neuralwatch_ai_calls earliest=-24h | stats count as total_calls, sum(eval(if(status="error",1,0))) as errors by service] | join type=left service [search index=neuralwatch_injections earliest=-24h | stats sum(eval(if(injection_score&gt;0.65,1,0))) as injection_events by service] | eval art9_score=if(isnull(injection_events) OR injection_events&lt;5, 100, max(0,100-injection_events*5)) | eval art13_score=if(disclosure_enabled=1,100,0) | eval art14_score=if(human_review_required=0,100,round(human_review_threshold*100,0)) | eval art17_score=if(isnull(errors) OR isnull(total_calls) OR total_calls=0,100,round((1-errors/total_calls)*100,0)) | eval art72_score=90 | eval overall_score=round((art9_score+art13_score+art14_score+art17_score+art72_score)/5,1) | eval status=case(overall_score&gt;=90,"✅ COMPLIANT",overall_score&gt;=70,"⚠️ AT RISK",1=1,"❌ NON-COMPLIANT") | table service, status, overall_score, art9_score, art13_score, art14_score, art17_score, art72_score | sort -overall_score</query>
+          <query>| inputlookup neuralwatch_compliance_baseline.csv | join type=left service [search index=neuralwatch_ai_calls earliest=-24h | spath | stats count as total_calls, sum(eval(if(status="error",1,0))) as errors by service] | join type=left service [search index=neuralwatch_injections earliest=-24h | spath | eval is_high=if(upper(risk_level)="HIGH" OR upper(risk_level)="CRITICAL",1,0) | stats sum(is_high) as injection_events by service] | eval art9_score=if(isnull(injection_events) OR injection_events&lt;5, 100, max(0,100-injection_events*5)) | eval art13_score=if(disclosure_enabled=1,100,0) | eval art14_score=if(human_review_required=0,100,round(human_review_threshold*100,0)) | eval art17_score=if(isnull(errors) OR isnull(total_calls) OR total_calls=0,100,round((1-errors/total_calls)*100,0)) | eval art72_score=90 | eval overall_score=round((art9_score+art13_score+art14_score+art17_score+art72_score)/5,1) | eval status=case(overall_score>=90,"✅ COMPLIANT",overall_score>=70,"⚠️ AT RISK",1=1,"❌ NON-COMPLIANT") | table service, status, overall_score, art9_score, art13_score, art14_score, art17_score, art72_score | sort -overall_score</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
-        
-        <refresh>2s</refresh>
-
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
         </search>
       </table>
     </panel>
   </row>
 
+  <!-- ROW 3: Article 9 — Risk Management -->
   <row>
     <panel>
       <chart>
-        <title>Article 9 — Risk Management Score by Service</title>
+        <title>Art. 9 — Injection Incidents by Service (High + Critical)</title>
         <search>
-          <query>| inputlookup neuralwatch_compliance_baseline.csv | join type=left service [search index=neuralwatch_injections earliest=-24h | stats sum(eval(if(injection_score&gt;0.65,1,0))) as injection_events by service] | eval art9_score=if(isnull(injection_events) OR injection_events&lt;5, 100, max(0,100-injection_events*5)) | table service, art9_score | sort -art9_score</query>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" | spath | eval risk_level=upper(risk_level) | where risk_level="HIGH" OR risk_level="CRITICAL" | stats count as injection_incidents by service | sort -injection_incidents</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
-        
-        <refresh>2s</refresh>
-
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.axisTitleX.text">Service</option>
+        <option name="charting.axisTitleY.text">Incidents</option>
+        <option name="charting.seriesColors">["0xDC4E41"]</option>
       </chart>
     </panel>
     <panel>
       <chart>
-        <title>Article 13/14 — Disclosure &amp; Oversight Compliance</title>
+        <title>Art. 9 — Threat Risk Level Distribution</title>
         <search>
-          <query>| inputlookup neuralwatch_compliance_baseline.csv | eval status=case(disclosure_enabled=1 AND human_review_required=0, "Fully Compliant", disclosure_enabled=1, "Disclosure Only", 1=1, "Non-Compliant") | stats count by status</query>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" | spath | eval risk_level=upper(risk_level) | stats count by risk_level | sort -count</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
-        
-        <refresh>2s</refresh>
-
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
         </search>
         <option name="charting.chart">pie</option>
+        <option name="charting.seriesColors">["0x53A051","0xF8BE34","0xF58F39","0xDC4E41"]</option>
       </chart>
     </panel>
   </row>
 
+  <!-- ROW 4: Article 13/14 — Transparency & Oversight -->
   <row>
     <panel>
       <chart>
-        <title>Article 17 — Quality Management: Error Rate by Service (%)</title>
+        <title>Art. 13 — Disclosure Compliance Status per Service</title>
         <search>
-          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats count as total_calls, sum(eval(if(status="error",1,0))) as errors by service | eval error_rate=round(errors/total_calls*100,2) | sort -error_rate | fields service, error_rate</query>
+          <query>| inputlookup neuralwatch_compliance_baseline.csv | eval disclosure_status=case(disclosure_enabled=1 AND human_review_required=0,"Fully Compliant",disclosure_enabled=1,"Disclosure Only",1=1,"Non-Compliant") | stats count by disclosure_status</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
-        
-        <refresh>2s</refresh>
-
+          <refresh>60s</refresh>
+          <refreshType>delay</refreshType>
         </search>
-        <option name="charting.chart">column</option>
-        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.chart">pie</option>
+        <option name="charting.seriesColors">["0x53A051","0xF8BE34","0xDC4E41"]</option>
       </chart>
     </panel>
     <panel>
       <chart>
-        <title>Article 72 — Systemic Risk: Latency Drift by Model</title>
+        <title>Art. 14 — Human Oversight: Review Required vs Not Required</title>
         <search>
-          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | stats p50(latency_ms) as p50, p95(latency_ms) as p95 by model | sort -p95</query>
+          <query>| inputlookup neuralwatch_compliance_baseline.csv | eval oversight=if(human_review_required=1,"Human Review Required","Automated — No Review") | stats count by oversight</query>
           <earliest>-24h</earliest>
           <latest>now</latest>
-        
-        <refresh>2s</refresh>
+          <refresh>60s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.chart">pie</option>
+        <option name="charting.seriesColors">["0xDC4E41","0x53A051"]</option>
+      </chart>
+    </panel>
+  </row>
 
+  <!-- ROW 5: Article 17 + 72 — Quality & Systemic Risk -->
+  <row>
+    <panel>
+      <chart>
+        <title>Art. 17 — Quality Management: Error Rate by Service %</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | spath | stats count as total_calls, sum(eval(if(status="error",1,0))) as errors by service | eval error_rate=round(errors/total_calls*100,2) | sort -error_rate | fields service, error_rate</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.chart">column</option>
+        <option name="charting.chart.showDataLabels">all</option>
+        <option name="charting.axisTitleX.text">Service</option>
+        <option name="charting.axisTitleY.text">Error Rate %</option>
+        <option name="charting.seriesColors">["0xF58F39"]</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Art. 72 — Systemic Risk: Latency Drift by Model (p50 vs p95)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | spath | stats p50(latency_ms) as p50, p95(latency_ms) as p95 by model | sort -p95</query>
+          <earliest>-24h</earliest>
+          <latest>now</latest>
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
         </search>
         <option name="charting.chart">bar</option>
         <option name="charting.chart.stackMode">default</option>
+        <option name="charting.axisTitleX.text">Model</option>
+        <option name="charting.axisTitleY.text">Latency (ms)</option>
+      </chart>
+    </panel>
+  </row>
+
+  <!-- ROW 6: Article 9 Live Threat Timeline -->
+  <row>
+    <panel>
+      <chart>
+        <title>Art. 9 — Live Injection Threat Activity (Last Hour)</title>
+        <search>
+          <query>index=neuralwatch_injections sourcetype="nw:prompt" | spath | eval risk_level=upper(risk_level) | where risk_level="HIGH" OR risk_level="CRITICAL" | timechart span=1m count by risk_level</query>
+          <earliest>-1h</earliest>
+          <latest>now</latest>
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Threat Events</option>
+        <option name="charting.seriesColors">["0xF58F39","0xDC4E41"]</option>
+      </chart>
+    </panel>
+    <panel>
+      <chart>
+        <title>Art. 17 — AI Call Quality Over Time (Error vs Success)</title>
+        <search>
+          <query>index=neuralwatch_ai_calls sourcetype="nw:ai_call" | spath | timechart span=5m count(eval(status="success")) as success, count(eval(status="error")) as errors</query>
+          <earliest>-1h</earliest>
+          <latest>now</latest>
+          <refresh>15s</refresh>
+          <refreshType>delay</refreshType>
+        </search>
+        <option name="charting.chart">area</option>
+        <option name="charting.chart.stackMode">stacked</option>
+        <option name="charting.axisTitleX.text">Time</option>
+        <option name="charting.axisTitleY.text">Call Volume</option>
+        <option name="charting.seriesColors">["0x53A051","0xDC4E41"]</option>
       </chart>
     </panel>
   </row>
