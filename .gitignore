@@ -24,27 +24,27 @@ env/
 *.egg-info/
 dist/
 build/
-
+.mcp.json
 # IDE
 .vscode/
 .idea/
 *.swp
-
+.windsurfrules
 # OS
 .DS_Store
 Thumbs.db
-
+AGENT.md
 # Test artifacts
 .pytest_cache/
 .coverage
 htmlcov/
-
+CLAUDE.md
 # Splunk app build artifacts
 splunk_app/*.spl
-
+.cursor
 # Caches and static analysis
 .mypy_cache/
 .ruff_cache/
-
+.github/copilot-instructions.md
 .jetro/
 tests/check_counts.py
