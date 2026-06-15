@@ -105,8 +105,8 @@ def generate_injection_dataset() -> List[Dict[str, Any]]:
         prompt_text, score, risk = prompt_info
         
         call_id = str(uuid.uuid4())
-        # Random time spread across the last 23 hours (within -24h Splunk dashboard window)
-        event_time = end_time - random.randint(100, 23 * 3600)
+        # Random time spread across the last 60 minutes (safely within any -24h Splunk query window)
+        event_time = end_time - random.randint(10, 3600)
         
         team = random.choice(TEAMS)
         service = random.choice(SERVICES)
