@@ -52,37 +52,38 @@ NeuralWatch is a zero-code-change AI observability platform that gives engineeri
 ```mermaid
 graph TD
     subgraph Client Application [Client Application Namespace]
-        App[Your Application]
-        SDK[neuralwatch_sdk]
+        App["Your Application"]
+        SDK["neuralwatch_sdk"]
         App -->|chat.completions.create| SDK
     end
 
     subgraph SDK Internals [SDK Engine]
-        Inst[instrumentor<br/>Patches OpenAI/Claude]
-        Cost[cost_estimator<br/>USD Pricing lookup]
-        Fwd[forwarder<br/>Queue-backed async thread]
+        Inst["instrumentor<br/>Patches OpenAI/Claude"]
+        Cost["cost_estimator<br/>USD Pricing lookup"]
+        Fwd["forwarder<br/>Queue-backed async thread"]
         SDK --> Inst
         Inst --> Cost
         Cost --> Fwd
     end
 
     subgraph Splunk Enterprise [Splunk Log Analytics]
-        HEC[HTTP Event Collector]
-        Index1[(neuralwatch_ai_calls)]
-        Index2[(neuralwatch_injections)]
+        HEC["HTTP Event Collector"]
+        Index1[("neuralwatch_ai_calls")]
+        Index2[("neuralwatch_injections")]
         Fwd -->|HTTPS HEC| HEC
         HEC --> Index1
         HEC --> Index2
     end
 
     subgraph User Interface [Telemetry Dashboards]
-        Dash1[AI Fleet Observatory]
-        Dash2[Prompt Injection Sentinel]
-        Dash3[EU AI Act Compliance]
-        MCP[MCP Query Agent]
+        Dash1["AI Fleet Observatory"]
+        Dash2["Prompt Injection Sentinel"]
+        Dash3["EU AI Act Compliance"]
+        MCP["MCP Query Agent"]
         Index1 --> Dash1
         Index2 --> Dash2
-        Index1 & Index2 --> Dash3
+        Index1 --> Dash3
+        Index2 --> Dash3
         MCP -->|SPL Query via API| Index1
     end
 ```
@@ -99,14 +100,16 @@ The Prompt Injection Sentinel captures every prompt sent through the instrumente
 
 ```mermaid
 flowchart LR
-    Prompt[User Prompt] -->|Intercepted by SDK| Classify[foundation_sec_classify.py]
-    Classify --> Pattern{Pattern Match?}
-    Pattern -->|'ignore all previous...' / DAN mode| High[Critical / High Risk]
-    Pattern -->|'bypass input validation' / XSS| Med[Medium Risk]
-    Pattern -->|Benign requests| Low[Low Risk]
-    High & Med & Low -->|Assign Injection Score 0.0 - 1.0| Score[Telemetry Event]
-    Score -->|Route to neuralwatch_injections| Index[(Splunk Index)]
-    Index --> Dash[Prompt Injection Sentinel Dashboard]
+    Prompt["User Prompt"] -->|Intercepted by SDK| Classify["foundation_sec_classify.py"]
+    Classify --> Pattern{"Pattern Match?"}
+    Pattern -->|"ignore all previous..." / DAN mode| High["Critical / High Risk"]
+    Pattern -->|"bypass input validation" / XSS| Med["Medium Risk"]
+    Pattern -->|"Benign requests"| Low["Low Risk"]
+    High -->|Assign Injection Score 0.0 - 1.0| Score["Telemetry Event"]
+    Med -->|Assign Injection Score 0.0 - 1.0| Score
+    Low -->|Assign Injection Score 0.0 - 1.0| Score
+    Score -->|Route to neuralwatch_injections| Index[("Splunk Index")]
+    Index --> Dash["Prompt Injection Sentinel Dashboard"]
 ```
 
 **Detected threat categories:**
@@ -128,11 +131,11 @@ The NeuralWatch MCP Agent provides natural language query access to all telemetr
 
 ```mermaid
 flowchart TD
-    User[User Question: 'How much did we spend on GPT-4o?'] -->|Input| Gen[spl_generator.py<br/>NL to SPL Compiler]
-    Gen -->|Generated SPL Query| Client[mcp_client.py<br/>Splunk SDK Runner]
-    Client -->|API Request| Splunk[(neuralwatch_ai_calls)]
-    Splunk -->|Raw Results JSON| Synth[agent.py<br/>LLM Synthesizer]
-    Synth -->|Formatted Summary| Out[User Response: 'GPT-4o cost $12.47 across 3 services...']
+    User["User Question: 'How much did we spend on GPT-4o?'"] -->|Input| Gen["spl_generator.py<br/>NL to SPL Compiler"]
+    Gen -->|Generated SPL Query| Client["mcp_client.py<br/>Splunk SDK Runner"]
+    Client -->|API Request| Splunk[("neuralwatch_ai_calls")]
+    Splunk -->|Raw Results JSON| Synth["agent.py<br/>LLM Synthesizer"]
+    Synth -->|Formatted Summary| Out["User Response: 'GPT-4o cost $12.47 across 3 services...'"]
 ```
 
 **Available via CLI:**
@@ -169,17 +172,21 @@ NeuralWatch continuously computes EU AI Act compliance scores for every monitore
 ```mermaid
 graph TD
     subgraph Adherence [EU AI Act Compliance Scoring Model]
-        Art9[Art. 9: Risk Management<br/>100 - high_incidents * 5]
-        Art13[Art. 13: Transparency<br/>100 if disclosure_enabled = 1, else 0]
-        Art14[Art. 14: Human Oversight<br/>100 if no review, else threshold * 100]
-        Art17[Art. 17: Quality Management<br/>1 - error_rate * 100]
-        Art72[Art. 72: Systemic Risk<br/>90 Adjusted by Latency Drift]
+        Art9["Art. 9: Risk Management<br/>100 - high_incidents * 5"]
+        Art13["Art. 13: Transparency<br/>100 if disclosure_enabled = 1, else 0"]
+        Art14["Art. 14: Human Oversight<br/>100 if no review, else threshold * 100"]
+        Art17["Art. 17: Quality Management<br/>1 - error_rate * 100"]
+        Art72["Art. 72: Systemic Risk<br/>90 Adjusted by Latency Drift"]
     end
-    Art9 & Art13 & Art14 & Art17 & Art72 -->|Average| Score[Overall Compliance Score]
-    Score --> Threshold{Score Threshold}
-    Threshold -->|Score >= 90| Comp[✅ COMPLIANT]
-    Threshold -->|Score >= 70| Risk[⚠️ AT RISK]
-    Threshold -->|Score < 70| Non[❌ NON-COMPLIANT]
+    Art9 -->|Average| Score["Overall Compliance Score"]
+    Art13 -->|Average| Score
+    Art14 -->|Average| Score
+    Art17 -->|Average| Score
+    Art72 -->|Average| Score
+    Score --> Threshold{"Score Threshold"}
+    Threshold -->|Score >= 90| Comp["✅ COMPLIANT"]
+    Threshold -->|Score >= 70| Risk["⚠️ AT RISK"]
+    Threshold -->|Score < 70| Non["❌ NON-COMPLIANT"]
 ```
 
 ---
