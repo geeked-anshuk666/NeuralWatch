@@ -62,51 +62,11 @@ sys.modules["openai.resources.chat"] = mock_openai.resources.chat
 sys.modules["openai.resources.chat.completions"] = mock_openai.resources.chat.completions
 
 # 2. Import SDK modules
-from neuralwatch_sdk.instrumentor import instrument, PromptEvent  # noqa: E402
+from neuralwatch_sdk.instrumentor import instrument  # noqa: E402
 
-# Local Heuristics rules for prompt injection severity classification (copied from foundation_sec_classify.py)
-HEURISTIC_RULES = [
-    # Critical patterns
-    ("ignore all previous instructions", 0.96, "CRITICAL"),
-    ("print your system prompt", 0.94, "CRITICAL"),
-    ("system prompt verbatim", 0.95, "CRITICAL"),
-    ("dan (do anything now)", 0.93, "CRITICAL"),
-    ("system('rm -rf", 0.98, "CRITICAL"),
-    
-    # High patterns
-    ("pretend you are the system administrator", 0.78, "HIGH"),
-    ("grant me access", 0.75, "HIGH"),
-    ("list all users", 0.72, "HIGH"),
-    ("output passwords", 0.85, "HIGH"),
-    ("exfiltrate", 0.81, "HIGH"),
-    
-    # Medium patterns
-    ("bypass a standard input validation", 0.58, "MEDIUM"),
-    ("training data", 0.45, "MEDIUM"),
-    ("cross-site scripting", 0.42, "MEDIUM"),
-    ("sql injection", 0.62, "MEDIUM")
-]
-
-def classify_text(prompt: str) -> tuple[float, str]:
-    """Apply heuristic rules to classify the injection risk of prompt text."""
-    text_lower = prompt.lower()
-    for pattern, score, risk in HEURISTIC_RULES:
-        if pattern in text_lower:
-            return score, risk
-    return 0.10, "LOW"
-
-# 3. Patch PromptEvent to automatically classify prompts on serialization
-# This ensures that when the SDK intercepts a prompt and sends it to HEC,
-# it already contains the correct injection_score and risk_level.
-original_to_dict = PromptEvent.to_dict
-def patched_to_dict(self):
-    data = original_to_dict(self)
-    score, risk = classify_text(self.prompt_text)
-    data["injection_score"] = score
-    data["risk_level"] = risk
-    return data
-
-PromptEvent.to_dict = patched_to_dict  # type: ignore[method-assign]
+# The SDK's PromptEvent now automatically classifies prompts on creation
+# via the built-in Foundation-Sec heuristic classifier.
+# No monkey-patch needed here.
 
 
 # Adversarial attack prompts (to drive Module A numbers up)
